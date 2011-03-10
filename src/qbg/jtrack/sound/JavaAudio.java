@@ -93,7 +93,7 @@ public class JavaAudio implements Closeable, AudioDriver {
                       val;
                 mix[i] = 0;
                 target[idx++] = (byte)val;
-                target[idx++] = (byte)(val>>8);
+                target[idx++] = (byte)(val >> 8);
             }
             if (idx == 2048) {
                 line.write(target, 0, 2048);

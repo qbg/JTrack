@@ -1,11 +1,13 @@
 package qbg.jtrack.instruments.fm;
+import qbg.jtrack.Configurable;
+import qbg.jtrack.SettingsBuffer;
 import qbg.jtrack.instruments.Env;
 import qbg.jtrack.instruments.Instrument;
 
 /**
  * An FM instrument
  */
-final class FMInstrument implements Instrument {
+public final class FMInstrument implements Instrument, Configurable {
     /**
      * The operators
      */
@@ -13,7 +15,7 @@ final class FMInstrument implements Instrument {
     /**
      * The envelopes
      */
-    public final Env envs[];
+    private final Env envs[];
     /**
      * The mix buffer
      */
@@ -26,7 +28,7 @@ final class FMInstrument implements Instrument {
      * The algorithm. The i*7+j's item sends op i's output to slot j (mix is
      * slot 6).
      */
-    public final int algorithm[];
+    private final int algorithm[];
     /**
      * True if we can skip computation
      */
@@ -34,12 +36,12 @@ final class FMInstrument implements Instrument {
     /**
      * Indicates if the corresponding freq in freqs is fixed
      */
-    public final boolean[] fixedFreqs;
+    private final boolean[] fixedFreqs;
     /**
      * If fixed, becomes the frequency for the corresponding op, otherwise is
      * the frequency multiplier
      */
-    public final double[] freqs;
+    private final double[] freqs;
     /**
      * The global volume
      */
@@ -144,6 +146,53 @@ final class FMInstrument implements Instrument {
         finished = false;
         for (int i = 0; i < 6; i++) {
             envs[i].release();
+        }
+    }
+
+    @Override
+    public Object invokeCommand(String command, Object... args) {
+        if (command.equals("adsr")) {
+            envs[(Integer)args[0]].setADSR((Double)args[1], (Double)args[2],
+                    (Double)args[3], (Double)args[4]);
+            return null;
+        } else if (command.equals("op")) {
+            freqs[(Integer)args[0]] = (Double)args[1];
+            fixedFreqs[(Integer)args[0]] = (Boolean)args[2];
+            return null;
+        } else if (command.equals("clear-connections")) {
+            for (int i = 0; i < 6*7; i++) {
+                algorithm[i] = 0;
+            }
+            return null;
+        } else if (command.equals("connect")) {
+            algorithm[((Integer)args[0])*7+((Integer)args[1])] =
+                (int)(((Double)args[2])*32768);
+            return null;
+        }
+        return null;
+    }
+
+    @Override
+    public void loadSettings(SettingsBuffer sb) {
+        for (int i = 0; i < 6; i++) {
+            envs[i].loadSettings(sb);
+            freqs[i] = sb.getDouble();
+            fixedFreqs[i] = sb.getBoolean();
+        }
+        for (int i = 0; i < 6*7; i++) {
+            algorithm[i] = sb.getInt();
+        }
+    }
+
+    @Override
+    public void saveSettings(SettingsBuffer sb) {
+        for (int i = 0; i < 6; i++) {
+            envs[i].saveSettings(sb);
+            sb.putDouble(freqs[i]);
+            sb.putBoolean(fixedFreqs[i]);
+        }
+        for (int i = 0; i < 6*7; i++) {
+            sb.putInt(algorithm[i]);
         }
     }
 }

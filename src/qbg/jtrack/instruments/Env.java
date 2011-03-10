@@ -1,9 +1,12 @@
 package qbg.jtrack.instruments;
 
+import qbg.jtrack.Configurable;
+import qbg.jtrack.SettingsBuffer;
+
 /**
  * Basic multi-point linear envelope
  */
-final public class Env {
+final public class Env implements Configurable {
     /**
      * The target levels
      */
@@ -115,5 +118,34 @@ final public class Env {
      */
     public boolean isFinished() {
         return pos == ticks.length-1;
+    }
+
+    @Override
+    public Object invokeCommand(String command, Object... args) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public void loadSettings(SettingsBuffer sb) {
+        int n = sb.getInt();
+        levels = new double[n];
+        ticks = new int[n];
+        for (int i = 0; i < n; i++) {
+            levels[i] = sb.getDouble();
+            ticks[i] = sb.getInt();
+        }
+        hold = sb.getInt();
+    }
+
+    @Override
+    public void saveSettings(SettingsBuffer sb) {
+        int n = levels.length;
+        sb.putInt(n);
+        for (int i = 0; i < n; i++) {
+            sb.putDouble(levels[i]);
+            sb.putInt(ticks[i]);
+        }
+        sb.putInt(hold);
     }
 }
