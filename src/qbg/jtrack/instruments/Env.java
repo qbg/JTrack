@@ -53,6 +53,8 @@ final public class Env implements Configurable {
         this.hold = hold;
         this.levels = levels.clone();
         this.ticks = new int[ticks.length];
+        pos = 0;
+        level = levels[0];
         
         double error = 0;
         for (int i = 0; i < ticks.length; i++) {
@@ -98,9 +100,9 @@ final public class Env implements Configurable {
      * Press the key
      */
     public void press() {
+        level = generate();
         pos = 0;
-        numTicks = 0; 
-        level = levels[0];
+        numTicks = 0;
     }
     
     /**
