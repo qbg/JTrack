@@ -31,6 +31,10 @@ final public class Env implements Configurable {
      * The number of ticks that have currently elapsed
      */
     private int numTicks;
+    /**
+     * Master volume
+     */
+    private double vol;
     
     /**
      * Default constructor
@@ -41,6 +45,7 @@ final public class Env implements Configurable {
         ticks = new int[]{0, 0};
         levels = new double[]{0.0, 0.0};
         level = 0;
+        vol = 1;
     }
     
     /**
@@ -82,6 +87,14 @@ final public class Env implements Configurable {
      * @return A linear fraction volume
      */
     public double generate() {
+        return generateRaw() * vol;
+    }
+
+    /**
+     * Like generate, but does not apply master volume.
+     * @return The raw volume level
+     */
+    private double generateRaw() {
         if (pos == ticks.length-1 || pos == hold) {
             return levels[pos];
         } 
@@ -100,7 +113,7 @@ final public class Env implements Configurable {
      * Press the key
      */
     public void press() {
-        level = generate();
+        level = generateRaw();
         pos = 0;
         numTicks = 0;
     }
@@ -109,7 +122,7 @@ final public class Env implements Configurable {
      * Release the key
      */
     public void release() {
-        level = generate();
+        level = generateRaw();
         pos = hold+1;
         numTicks = 0;
     }
@@ -149,5 +162,13 @@ final public class Env implements Configurable {
             sb.putInt(ticks[i]);
         }
         sb.putInt(hold);
+    }
+
+    /**
+     * Set the master volume
+     * @param vol
+     */
+    public void setVol(double vol) {
+        this.vol = vol;
     }
 }

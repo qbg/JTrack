@@ -43,6 +43,11 @@ public final class FMInstrument implements Instrument, Configurable {
      */
     private final double[] freqs;
     /**
+     * If true, the corresponding envelope's master volume will track the
+     * instruments master volume.
+     */
+    private final boolean[] velScale;
+    /**
      * The global volume
      */
     private int vol;
@@ -61,6 +66,7 @@ public final class FMInstrument implements Instrument, Configurable {
             envs[i] = new Env();
         }
         
+        velScale = new boolean[6];
         mix = new int[7];
         input = new int[6];
         algorithm = new int[6*7];
@@ -139,7 +145,12 @@ public final class FMInstrument implements Instrument, Configurable {
     }
     
     public void setVol(double vol) {
-        this.vol = (int)(vol*32768);
+        for (int i = 0; i < 6; i++) {
+            if (velScale[i]) {
+                envs[i].setVol(vol);
+            }
+        }
+        this.vol = (int)(vol * 32768);
     }
 
     public void release() {
@@ -168,6 +179,8 @@ public final class FMInstrument implements Instrument, Configurable {
             algorithm[((Integer)args[0])*7+((Integer)args[1])] =
                 (int)(((Double)args[2])*32768);
             return null;
+        } else if (command.equals("vel-scale")) {
+            velScale[(Integer)args[0]] = (Boolean)args[1];
         }
         return null;
     }
@@ -178,6 +191,7 @@ public final class FMInstrument implements Instrument, Configurable {
             envs[i].loadSettings(sb);
             freqs[i] = sb.getDouble();
             fixedFreqs[i] = sb.getBoolean();
+            velScale[i] = sb.getBoolean();
         }
         for (int i = 0; i < 6*7; i++) {
             algorithm[i] = sb.getInt();
@@ -190,6 +204,7 @@ public final class FMInstrument implements Instrument, Configurable {
             envs[i].saveSettings(sb);
             sb.putDouble(freqs[i]);
             sb.putBoolean(fixedFreqs[i]);
+            sb.putBoolean(velScale[i]);
         }
         for (int i = 0; i < 6*7; i++) {
             sb.putInt(algorithm[i]);
